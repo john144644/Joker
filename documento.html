@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Diário</title>
+    <style>
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <h2>Postar no Diário</h2>
+    <form id="postForm">
+        <label for="texto">Texto:</label>
+        <textarea id="texto" name="texto" required></textarea>
+
+        <label for="foto">Foto (URL ou do Dispositivo):</label>
+        <input type="text" id="foto" name="foto">
+        <input type="file" id="fotoInput" name="fotoInput" accept="image/*">
+
+        <input type="submit" value="Postar">
+    </form>
+
+    <div id="posts">
+        <!-- Área para exibir postagens -->
+    </div>
+
+    <script>
+        document.getElementById('postForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const texto = document.getElementById('texto').value;
+            const fotoInput = document.getElementById('fotoInput');
+            const fotoURL = document.getElementById('foto').value;
+
+            let foto;
+            if (fotoInput.files.length > 0) {
+                const file = fotoInput.files[0];
+                foto = URL.createObjectURL(file);
+            } else {
+                foto = fotoURL;
+            }
+
+            if (texto || foto) {
+                const postagem = { texto, foto, bloqueada: false };
+                const postagens = JSON.parse(localStorage.getItem('postagens')) || [];
+
+                postagens.push(postagem);
+                localStorage.setItem('postagens', JSON.stringify(postagens));
+
+                exibirPostagens();
+                document.getElementById('texto').value = '';
+                document.getElementById('foto').value = '';
+                document.getElementById('fotoInput').value = '';
+            }
+        });
+
+        function exibirPostagens() {
+            const postagens = JSON.parse(localStorage.getItem('postagens')) || [];
+            const postsContainer = document.getElementById('posts');
+
+            postsContainer.innerHTML = '';
+
+            postagens.forEach((post, index) => {
+                const postagemHTML = `
+                    <div>
+                        <p>${post.texto}</p>
+                        ${post.bloqueada ? '<p>Foto Bloqueada</p>' : post.foto ? `<img src="${post.foto}" alt="Foto">` : ''}
+                        <div>
+                            <button onclick="bloquearDesbloquearFoto(${index})">${post.bloqueada ? 'Desbloquear' : 'Bloquear'} Foto</button>
+                            <button onclick="excluirFoto(${index})">Excluir Foto</button>
+                        </div>
+                    </div>
+                `;
+                postsContainer.innerHTML += postagemHTML;
+            });
+        }
+
+        // Exibe postagens ao carregar a página
+        window.addEventListener('load', exibirPostagens);
+    </script>
+</body>
+</html>
